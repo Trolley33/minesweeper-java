@@ -21,14 +21,14 @@ public class Cell
 
     private static Color[] COLORS = {
             null,
-            Color.BLUE,
-            Color.GREEN,
+            Color.CYAN,
+            Color.LIMEGREEN,
             Color.RED,
-            Color.PURPLE,
-            Color.BLACK,
-            Color.MAROON,
-            Color.GRAY,
-            Color.TURQUOISE,
+            Color.MEDIUMPURPLE,
+            Color.WHITE,
+            Color.YELLOW,
+            Color.HOTPINK,
+            Color.FUCHSIA,
     };
 
     static Image[] images;
