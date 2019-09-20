@@ -8,7 +8,7 @@ import java.util.Random;
 
 public class GameLogic {
 
-    private static double MINE_DENSITY = 0.15;
+    private static double MINE_DENSITY = 0.1;
     private int mineNumber;
 
     private GameWindow gameWindow;
@@ -18,6 +18,7 @@ public class GameLogic {
     private double[] mousePos;
 
     private boolean minesPlaced;
+    private int markedCells;
 
     GameLogic(GameWindow gw) {
         this.gameWindow = gw;
@@ -37,6 +38,7 @@ public class GameLogic {
             }
         }
         minesPlaced = false;
+        markedCells = 0;
     }
 
     /**
@@ -134,43 +136,42 @@ public class GameLogic {
                 {
                     cell.setState (1);
                     floodFill (i, j);
+                    calculateProbability();
                 } else {
                     cell.setState (1);
                     bang();
                 }
             }
-            calculateProbability();
+
         }
         else if (event.getButton () == MouseButton.SECONDARY)
         {
             if (cell.getState () == 0)
-                cell.setState (2);
+            {
+                if (markedCells < mineNumber)
+                {
+                    cell.setState (2);
+                    markedCells++;
+                }
+            }
             else if (cell.getState () == 2)
+            {
                 cell.setState (0);
+                markedCells--;
+            }
 
             checkIfWon();
         }
     }
 
     void calculateProbability() {
-        for (int i = 0; i < cells.length; i++) {
-            for (int j = 0; j < cells[i].length; j++)
-            {
-                cells[i][j].setProbability(0);
-            }
-        }
+        int[][] weighted_board = Solver.generateWeightedBoard (cells, mineNumber);
+
 
         for (int i = 0; i < cells.length; i++) {
             for (int j = 0; j < cells[i].length; j++)
             {
-                if (cells[i][j].getState () == 1 && cells[i][j].getNearbyMines () > 0)
-                {
-                    Cell[] nearbyCells = getAdjacentCells (i, j);
-                    for (Cell c : nearbyCells)
-                    {
-                        c.addProbability ((float)cells[i][j].getNearbyMines () / (float)getAdjacentCells (c.getI (), c.getJ ()).length);
-                    }
-                }
+                cells[i][j].setProbability(weighted_board[i][j]);
             }
         }
     }

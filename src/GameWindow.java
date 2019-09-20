@@ -15,8 +15,8 @@ import java.io.FileInputStream;
 
 public class GameWindow {
 
-    public static int[] WINDOW_SIZE = {640, 640};
-    public static int[] BOARD_SIZE = {8, 8};
+    public static int[] WINDOW_SIZE = {700, 700};
+    public static int[] BOARD_SIZE = {7, 7};
 
     Stage stage;
     GameLogic gameLogic;

@@ -18,7 +18,7 @@ public class Cell
     private boolean is_mine;
     private int nearbyMines;
 
-    private float probability = 0;
+    private int probability = 0;
 
     private static Color[] COLORS = {
             null,
@@ -46,14 +46,15 @@ public class Cell
         // Draw graphic based on state.
         gc.drawImage (images[state], w*i, h*j, w, h);
 
+        // Cell is still up.
         if (state == 0) {
             gc.setFill (Color.WHITE);
             gc.setFont (Font.font ("trebuchet ms", FontWeight.BOLD, w * 0.3f));
             gc.setTextAlign (TextAlignment.CENTER);
             gc.setTextBaseline (VPos.CENTER);
             String probabilityString = "?";
-            if (getProbability () > 0)
-                probabilityString = String.format ("%.0f", getProbability ()*100F);
+            if (getProbability () >= 0)
+                probabilityString = String.format ("%d", getProbability ());
             gc.fillText (probabilityString, w * i + (w / 2), h * j + (h / 2));
         }
 
@@ -122,17 +123,17 @@ public class Cell
         nearbyMines = n;
     }
 
-    public float getProbability ()
+    public int getProbability ()
     {
         return probability;
     }
 
-    public void setProbability (float probability)
+    public void setProbability (int probability)
     {
         this.probability = probability;
     }
 
-    public void addProbability(float p) {
+    public void addProbability(int p) {
         this.probability += p;
     }
 
