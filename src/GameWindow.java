@@ -44,6 +44,7 @@ public class GameWindow {
                     new Image (new FileInputStream ("./images/down-cell.png")),
                     new Image (new FileInputStream ("./images/marked-cell.png")),
                     new Image (new FileInputStream ("./images/flag.png")),
+                    new Image (new FileInputStream ("./images/mine.png")),
             };
         } catch (Exception e) {
             System.out.println ("Images not found...");

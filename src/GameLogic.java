@@ -1,3 +1,5 @@
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 
@@ -14,6 +16,8 @@ public class GameLogic {
 
     private Cell currentInside;
     private double[] mousePos;
+
+    private boolean minesPlaced;
 
     GameLogic(GameWindow gw) {
         this.gameWindow = gw;
@@ -32,21 +36,47 @@ public class GameLogic {
                 cells[i][j] = new Cell (i, j);
             }
         }
-
-        placeMines ();
+        minesPlaced = false;
     }
 
-    void placeMines() {
+    /**
+     * Game lost, mine selected.
+     */
+    void bang() {
+        Alert alert = new Alert(Alert.AlertType.WARNING, "Bang!\nPlay Again?", ButtonType.YES, ButtonType.NO);
+        alert.showAndWait();
+
+        if (alert.getResult() == ButtonType.YES) {
+            startup ();
+        } else {
+            gameWindow.stage.close ();
+        }
+    }
+
+    void win() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "You Won!\nPlay Again?", ButtonType.YES, ButtonType.NO);
+        alert.showAndWait();
+
+        if (alert.getResult() == ButtonType.YES) {
+            startup ();
+        } else {
+            gameWindow.stage.close ();
+        }
+    }
+
+    void placeMines(int i, int j) {
         Random random = new Random ();
         int placed = 0;
         while (placed < mineNumber) {
             int r1 = random.nextInt (cells.length);
             int r2 = random.nextInt (cells[0].length);
-            if (!cells[r1][r2].isMine ()) {
+            // Avoid placing mines on top of each other, or on the mouse cursor.
+            if (!cells[r1][r2].isMine () && r1 != i && r2 != j) {
                 cells[r1][r2].setMine ();
                 placed++;
             }
         }
+        minesPlaced = true;
         calculateNearby ();
     }
 
@@ -95,14 +125,21 @@ public class GameLogic {
         Cell cell = cells[i][j];
         if (event.getButton () == MouseButton.PRIMARY)
         {
+            if (!minesPlaced) {
+                placeMines (i, j);
+            }
             if (cell.getState () == 0)
             {
                 if (!cell.isMine ())
                 {
                     cell.setState (1);
                     floodFill (i, j);
+                } else {
+                    cell.setState (1);
+                    bang();
                 }
             }
+            calculateProbability();
         }
         else if (event.getButton () == MouseButton.SECONDARY)
         {
@@ -110,11 +147,52 @@ public class GameLogic {
                 cell.setState (2);
             else if (cell.getState () == 2)
                 cell.setState (0);
+
+            checkIfWon();
+        }
+    }
+
+    void calculateProbability() {
+        for (int i = 0; i < cells.length; i++) {
+            for (int j = 0; j < cells[i].length; j++)
+            {
+                cells[i][j].setProbability(0);
+            }
+        }
+
+        for (int i = 0; i < cells.length; i++) {
+            for (int j = 0; j < cells[i].length; j++)
+            {
+                if (cells[i][j].getState () == 1 && cells[i][j].getNearbyMines () > 0)
+                {
+                    Cell[] nearbyCells = getAdjacentCells (i, j);
+                    for (Cell c : nearbyCells)
+                    {
+                        c.addProbability ((float)cells[i][j].getNearbyMines () / (float)getAdjacentCells (c.getI (), c.getJ ()).length);
+                    }
+                }
+            }
+        }
+    }
+
+    void checkIfWon() {
+        int minesMarked = 0;
+        for (int i = 0; i < cells.length; i++) {
+            for (int j = 0; j < cells[i].length; j++)
+            {
+                if (cells[i][j].getState () == 2 && cells[i][j].isMine ()) {
+                    minesMarked++;
+                }
+            }
+        }
+
+        if (minesMarked == mineNumber) {
+            win();
         }
     }
 
     void floodFill(int i, int j) {
-        if (getCell (i, j).getNearby() != 0)
+        if (getCell (i, j).getNearbyMines() != 0)
             return;
 
         Cell[] adjacentCells = getAdjacentCells(i, j);

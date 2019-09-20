@@ -4,7 +4,6 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 
 public class Cell
@@ -18,6 +17,8 @@ public class Cell
     private int state = 0;
     private boolean is_mine;
     private int nearbyMines;
+
+    private float probability = 0;
 
     private static Color[] COLORS = {
             null,
@@ -42,16 +43,36 @@ public class Cell
     }
 
     void draw(GraphicsContext gc) {
+        // Draw graphic based on state.
         gc.drawImage (images[state], w*i, h*j, w, h);
-        if (state == 2)
-            gc.drawImage (images[3], w*i, h*j, w, h);
-        if (state == 1 && getNearby () > 0) {
-            gc.setFill (COLORS[getNearby ()]);
-            gc.setFont (Font.font ("trebuchet ms", FontWeight.BOLD, w*0.4f));
+
+        if (state == 0) {
+            gc.setFill (Color.WHITE);
+            gc.setFont (Font.font ("trebuchet ms", FontWeight.BOLD, w * 0.3f));
             gc.setTextAlign (TextAlignment.CENTER);
             gc.setTextBaseline (VPos.CENTER);
-            gc.fillText (Integer.toString (getNearby ()), w*i + (w/2), h*j + (h/2));
-       }
+            String probabilityString = "?";
+            if (getProbability () > 0)
+                probabilityString = String.format ("%.0f", getProbability ()*100F);
+            gc.fillText (probabilityString, w * i + (w / 2), h * j + (h / 2));
+        }
+
+        // If cell is marked, draw flag graphic on top too.
+        if (state == 2)
+            gc.drawImage (images[3], w*i, h*j, w, h);
+        // If cell is pressed, and has >0 mines nearby, draw text.
+        if (state == 1 && getNearbyMines () > 0 && !isMine ())
+        {
+            gc.setFill (COLORS[getNearbyMines ()]);
+            gc.setFont (Font.font ("trebuchet ms", FontWeight.BOLD, w * 0.4f));
+            gc.setTextAlign (TextAlignment.CENTER);
+            gc.setTextBaseline (VPos.CENTER);
+            gc.fillText (Integer.toString (getNearbyMines ()), w * i + (w / 2), h * j + (h / 2));
+        }
+        if (state == 1 && isMine ())
+        {
+            gc.drawImage (images[4], w*i, h*j, w, h);
+        }
     }
 
     void drawBorder(GraphicsContext gc) {
@@ -101,7 +122,21 @@ public class Cell
         nearbyMines = n;
     }
 
-    int getNearby() {
+    public float getProbability ()
+    {
+        return probability;
+    }
+
+    public void setProbability (float probability)
+    {
+        this.probability = probability;
+    }
+
+    public void addProbability(float p) {
+        this.probability += p;
+    }
+
+    public int getNearbyMines() {
         return nearbyMines;
     }
 }
